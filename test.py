@@ -17,18 +17,16 @@ class FfsTest(TestCase):
             shutil.rmtree(self.root)
 
     def test1(self):
-        rtr = Router()
+        rtr = Router(lol=Router(hop=str))
         lst1 = List(self.root, rtr)
-        rtr.register('lol', List).register('hop', str)
         assert 'hop' not in lst1
         assert 'lol' in lst1
         lst2 = lst1['lol']
         assert 'hop' not in lst2
 
     def test2(self):
-        rtr = Router()
+        rtr = Router(lol=Router(cat=str))
         lst1 = List(self.root, rtr)
-        rtr.register('lol', List).register('cat', str)
         assert 'cat' not in lst1
         assert 'lol' in lst1
         lst2 = lst1['lol']

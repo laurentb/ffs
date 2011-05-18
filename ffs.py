@@ -1,23 +1,29 @@
-from collections import Mapping # TODO MutableMapping
+from collections import Mapping  # TODO MutableMapping
 import os
+
 
 class RouterError(Exception):
     pass
 
+
 class Router(object):
-    def __init__(self):
+    def __init__(self, advroutes=None, **routes):
+        if advroutes is None:
+            advroutes = {}
+        routes.update(advroutes)
         self.routes = []
+        for pattern, cls in routes.iteritems():
+            self.register(pattern, cls)
 
     def register(self, pattern, cls):
-        router = self.__class__() if cls is List else None
-        self.routes.append((pattern, cls, router))
-        return router
+        self.routes.append((pattern, cls))
 
     def route(self, key):
-        for pattern, cls, router in self.routes:
+        for pattern, cls in self.routes:
             if key == pattern:
-                return (cls, router)
+                return cls
         raise RouterError("No type found for %s" % key)
+
 
 class List(Mapping):
     def __init__(self, root, router):
@@ -30,9 +36,9 @@ class List(Mapping):
     def __getitem__(self, key):
         if key not in self:
             raise KeyError(key)
-        cls, router = self.router.route(key)
-        if router:
-            return cls(os.path.join(self.root, key), router)
+        cls = self.router.route(key)
+        if isinstance(cls, Router):
+            return List(os.path.join(self.root, key), cls)
         else:
             with open(os.path.join(self.root, key), 'r') as f:
                 data = f.read()
@@ -48,4 +54,3 @@ class List(Mapping):
 
     def __len__(self):
         return len(self.keys())
-
