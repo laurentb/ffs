@@ -1,5 +1,6 @@
 from collections import Mapping  # TODO MutableMapping
 import os
+from fnmatch import fnmatchcase
 
 
 class RouterError(Exception):
@@ -20,7 +21,7 @@ class Router(object):
 
     def route(self, key):
         for pattern, cls in self.routes:
-            if key == pattern:
+            if fnmatchcase(key, pattern):
                 return cls
         raise RouterError("No type found for %s" % key)
 
