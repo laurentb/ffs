@@ -7,10 +7,10 @@ class RouterError(Exception):
 
 
 class Router(object):
-    def __init__(self, advroutes=None, **routes):
-        if advroutes is None:
-            advroutes = {}
-        routes.update(advroutes)
+    def __init__(self, _advroutes=None, **routes):
+        if _advroutes is None:
+            _advroutes = {}
+        routes.update(_advroutes)
         self.routes = []
         for pattern, cls in routes.iteritems():
             self.register(pattern, cls)
