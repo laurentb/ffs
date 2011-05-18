@@ -23,7 +23,7 @@ class FfsTest(TestCase):
         assert 'hop' not in lst1
         assert 'lol' in lst1
         lst2 = lst1['lol']
-        assert 'hop' not in lst1
+        assert 'hop' not in lst2
 
     def test2(self):
         rtr = Router()
@@ -33,4 +33,4 @@ class FfsTest(TestCase):
         assert 'lol' in lst1
         lst2 = lst1['lol']
         assert 'cat' in lst2
-        assert 'hello' == lst2['cat']
+        assert "hello" == lst2['cat']
