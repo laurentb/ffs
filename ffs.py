@@ -4,7 +4,8 @@ from fnmatch import fnmatchcase
 
 
 class RouterError(Exception):
-    pass
+    def __init__(self, key):
+        Exception.__init__(self, "%s does not match any route." % key)
 
 
 class Router(object):
@@ -23,7 +24,6 @@ class Router(object):
         for pattern, cls in self.routes:
             if fnmatchcase(key, pattern):
                 return cls
-        raise RouterError("No type found for %s" % key)
 
 
 class List(Mapping):
@@ -32,12 +32,15 @@ class List(Mapping):
         self.router = router
 
     def __contains__(self, key):
-        return os.path.lexists(os.path.join(self.root, key))
+        return self.router.route(key) and \
+            os.path.lexists(os.path.join(self.root, key))
 
     def __getitem__(self, key):
+        cls = self.router.route(key)
+        if cls is None:
+            raise RouterError(key)
         if key not in self:
             raise KeyError(key)
-        cls = self.router.route(key)
         if isinstance(cls, Router):
             return List(os.path.join(self.root, key), cls)
         else:
@@ -48,7 +51,7 @@ class List(Mapping):
             return cls(data)
 
     def keys(self):
-        return os.listdir(self.root)
+        return [f for f in os.listdir(self.root) if self.router.route(f)]
 
     def __iter__(self):
         return iter(self.keys())

@@ -46,7 +46,9 @@ class FfsTest(TestCase):
         lst2 = lst1['lol']
         assert 'cat' in lst2
         assert 'caaaaat' in lst2
-        assert 'longcat' in lst2  # FIXME this should not be true.
+        assert 'cot' not in lst2
+        assert 'longcat' not in lst2
         assert "hello" == lst2['cat']
         assert "hello2" == lst2['caaaaat']
-        self.assertRaises(RouterError, lst2.__getitem__, 'longcat')  # FIXME just return KeyError?
+        self.assertRaises(KeyError, lst2.__getitem__, 'cot')
+        self.assertRaises(RouterError, lst2.__getitem__, 'longcat')
