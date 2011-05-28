@@ -1,4 +1,4 @@
-from collections import Mapping  # TODO MutableMapping
+from collections import MutableMapping
 import os
 from fnmatch import fnmatchcase
 
@@ -26,7 +26,7 @@ class Router(object):
                 return cls
 
 
-class List(Mapping):
+class List(MutableMapping):
     def __init__(self, root, router):
         self.root = root
         self.router = router
@@ -36,19 +36,42 @@ class List(Mapping):
             os.path.lexists(os.path.join(self.root, key))
 
     def __getitem__(self, key):
+        cls = self._get_cls(key)
+        if isinstance(cls, Router):
+            return List(os.path.join(self.root, key), cls)
+        else:
+            with open(os.path.join(self.root, key), 'rb') as f:
+                data = f.read()
+            if hasattr(cls, 'fromstring'):
+                return cls.fromstring(data)
+            return cls(data)
+
+    def _get_cls(self, key):
         cls = self.router.route(key)
         if cls is None:
             raise RouterError(key)
         if key not in self:
             raise KeyError(key)
-        if isinstance(cls, Router):
-            return List(os.path.join(self.root, key), cls)
+        return cls
+
+    def __delitem__(self, key):
+        assert self._get_cls(key)
+        os.unlink(os.path.join(self.root, key))
+
+    def __setitem__(self, key, value):
+        cls = self.router.route(key)
+        if cls is None:
+            raise RouterError(key)
+        if not isinstance(value, cls):
+            raise ValueError("%s is not a %s." % (repr(value), cls.__name__))
+        if hasattr(cls, 'tostring'):
+            data = value.tostring()
+        elif isinstance(value, basestring):
+            data = value
         else:
-            with open(os.path.join(self.root, key), 'r') as f:
-                data = f.read()
-            if hasattr(cls, 'fromstring'):
-                return cls.fromstring(data)
-            return cls(data)
+            raise ValueError("Unable to convert %s to a string." % repr(value))
+        with open(os.path.join(self.root, key), 'wb') as f:
+            f.write(data)
 
     def keys(self):
         return [f for f in os.listdir(self.root) if self.router.route(f)]
