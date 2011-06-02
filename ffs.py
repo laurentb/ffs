@@ -34,14 +34,14 @@ class List(MutableMapping):
 
     def __contains__(self, key):
         return self.router.route(key) and \
-            os.path.lexists(os.path.join(self.root, key))
+            os.path.lexists(self._get_path(key))
 
     def __getitem__(self, key):
         cls = self._get_cls(key)
-        if isinstance(cls, Router):
-            return List(os.path.join(self.root, key), cls)
+        if self._is_list(cls):
+            return List(self._get_path(key), cls)
         else:
-            with open(os.path.join(self.root, key), 'rb') as f:
+            with open(self._get_path(key), 'rb') as f:
                 data = f.read()
             if hasattr(cls, 'fromstring'):
                 return cls.fromstring(data)
@@ -55,12 +55,18 @@ class List(MutableMapping):
             raise KeyError(key)
         return cls
 
+    def _is_list(self, cls):
+        return isinstance(cls, Router)
+
+    def _get_path(self, key):
+        return os.path.join(self.root, key)
+
     def __delitem__(self, key):
         cls = self._get_cls(key)
-        if isinstance(cls, Router):
-            shutil.rmtree(os.path.join(self.root, key))
+        if self._is_list(cls):
+            shutil.rmtree(self._get_path(key))
         else:
-            os.unlink(os.path.join(self.root, key))
+            os.unlink(self._get_path(key))
 
     def __setitem__(self, key, value):
         cls = self.router.route(key)
@@ -74,7 +80,7 @@ class List(MutableMapping):
             data = value
         else:
             raise ValueError("Unable to convert %s to a string." % repr(value))
-        with open(os.path.join(self.root, key), 'wb') as f:
+        with open(self._get_path(key), 'wb') as f:
             f.write(data)
 
     def keys(self):
