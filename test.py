@@ -69,3 +69,10 @@ class FfsTest(TestCase):
         lst2['cot'] = "hello2"
         assert 'cot' in lst2
         assert lst2['cot'] == "hello2"
+
+    def test_listDelete(self):
+        rtr = Router(lol=Router(cat=str, cot=str))
+        lst1 = List(self.root, rtr)
+        assert 'lol' in lst1
+        del lst1['lol']
+        assert 'lol' not in lst1

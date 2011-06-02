@@ -1,6 +1,7 @@
 from collections import MutableMapping
 import os
 from fnmatch import fnmatchcase
+import shutil
 
 
 class RouterError(Exception):
@@ -55,8 +56,11 @@ class List(MutableMapping):
         return cls
 
     def __delitem__(self, key):
-        assert self._get_cls(key)
-        os.unlink(os.path.join(self.root, key))
+        cls = self._get_cls(key)
+        if isinstance(cls, Router):
+            shutil.rmtree(os.path.join(self.root, key))
+        else:
+            os.unlink(os.path.join(self.root, key))
 
     def __setitem__(self, key, value):
         cls = self.router.route(key)
