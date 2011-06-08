@@ -27,7 +27,7 @@ class Router(object):
                 return cls
 
 
-class List(MutableMapping):
+class Dict(MutableMapping):
     def __init__(self, root, router):
         self.root = root
         self.router = router
@@ -38,8 +38,8 @@ class List(MutableMapping):
 
     def __getitem__(self, key):
         cls = self._get_cls(key)
-        if self._is_list(cls):
-            return List(self._get_path(key), cls)
+        if self._is_dict(cls):
+            return Dict(self._get_path(key), cls)
         else:
             with open(self._get_path(key), 'rb') as f:
                 data = f.read()
@@ -55,7 +55,7 @@ class List(MutableMapping):
             raise KeyError(key)
         return cls
 
-    def _is_list(self, cls):
+    def _is_dict(self, cls):
         return isinstance(cls, Router)
 
     def _get_path(self, key):
@@ -63,7 +63,7 @@ class List(MutableMapping):
 
     def __delitem__(self, key):
         cls = self._get_cls(key)
-        if self._is_list(cls):
+        if self._is_dict(cls):
             shutil.rmtree(self._get_path(key))
         else:
             os.unlink(self._get_path(key))
