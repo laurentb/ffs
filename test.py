@@ -76,3 +76,21 @@ class FfsTest(TestCase):
         assert 'lol' in lst1
         del lst1['lol']
         assert 'lol' not in lst1
+
+    def test_listSet(self):
+        rtr = Router(lulz=Router(cat=str))
+        lst1 = Dict(self.root, rtr)
+        assert 'lulz' not in lst1
+        lst1['lulz'] = {}
+        assert len(lst1['lulz']) == 0
+        assert isinstance(lst1['lulz'], Dict)
+        lst1['lulz'] = {'cat': "hello"}
+        assert len(lst1['lulz']) == 1
+        assert isinstance(lst1['lulz'], Dict)
+
+        lst1n = Dict(self.root, rtr)
+        assert lst1n['lulz']['cat'] == "hello"
+
+        lst1n['lulz'] = {}
+        assert 'cat' not in lst1['lulz']
+        assert 'cat' not in lst1n['lulz']

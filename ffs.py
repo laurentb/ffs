@@ -55,8 +55,9 @@ class Dict(MutableMapping):
             raise KeyError(key)
         return cls
 
-    def _is_dict(self, cls):
-        return isinstance(cls, Router)
+    def _is_dict(self, cls, allow_std=False):
+        classes = (Router, dict) if allow_std else Router
+        return isinstance(cls, classes)
 
     def _get_path(self, key):
         return os.path.join(self.root, key)
@@ -72,16 +73,25 @@ class Dict(MutableMapping):
         cls = self.router.route(key)
         if cls is None:
             raise RouterError(key)
-        if not isinstance(value, cls):
-            raise ValueError("%s is not a %s." % (repr(value), cls.__name__))
-        if hasattr(cls, 'tostring'):
-            data = value.tostring()
-        elif isinstance(value, basestring):
-            data = value
+        if self._is_dict(cls) and self._is_dict(value, True):
+            if key in self:
+                del self[key]
+            os.mkdir(self._get_path(key))
+            if len(value):
+                lst = self[key]
+                for k, v in value.iteritems():
+                    lst[k] = v
         else:
-            raise ValueError("Unable to convert %s to a string." % repr(value))
-        with open(self._get_path(key), 'wb') as f:
-            f.write(data)
+            if not isinstance(value, cls):
+                raise ValueError("%s is not a %s." % (repr(value), cls.__name__))
+            if hasattr(cls, 'tostring'):
+                data = value.tostring()
+            elif isinstance(value, basestring):
+                data = value
+            else:
+                raise ValueError("Unable to convert %s to a string." % repr(value))
+            with open(self._get_path(key), 'wb') as f:
+                f.write(data)
 
     def keys(self):
         return [f for f in os.listdir(self.root) if self.router.route(f)]
