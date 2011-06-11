@@ -94,3 +94,10 @@ class FfsTest(TestCase):
         lst1n['lulz'] = {}
         assert 'cat' not in lst1['lulz']
         assert 'cat' not in lst1n['lulz']
+
+    def test_copyTrees(self):
+        rtr = Router(lol=Router(cat=str), lulz=Router(cat=str))
+        lst1 = Dict(self.root, rtr)
+        lst1['lulz'] = lst1['lol']
+        assert 'cat' in lst1['lulz']
+        assert lst1['lulz']['cat'] == "hello"
