@@ -38,7 +38,7 @@ class Dict(MutableMapping):
 
     def __getitem__(self, key):
         cls = self._get_cls(key)
-        if self._is_dict(cls):
+        if isinstance(cls, Router):
             return Dict(self._get_path(key), cls)
         else:
             with open(self._get_path(key), 'rb') as f:
@@ -55,16 +55,12 @@ class Dict(MutableMapping):
             raise KeyError(key)
         return cls
 
-    def _is_dict(self, cls, allow_std=False):
-        classes = (Router, dict) if allow_std else Router
-        return isinstance(cls, classes)
-
     def _get_path(self, key):
         return os.path.join(self.root, key)
 
     def __delitem__(self, key):
         cls = self._get_cls(key)
-        if self._is_dict(cls):
+        if isinstance(cls, Router):
             shutil.rmtree(self._get_path(key))
         else:
             os.unlink(self._get_path(key))
@@ -73,7 +69,7 @@ class Dict(MutableMapping):
         cls = self.router.route(key)
         if cls is None:
             raise RouterError(key)
-        if self._is_dict(cls) and self._is_dict(value, True):
+        if isinstance(cls, Router) and isinstance(value, (Dict, dict)):
             if key in self:
                 del self[key]
             os.mkdir(self._get_path(key))
