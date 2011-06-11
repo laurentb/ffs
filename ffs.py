@@ -31,6 +31,7 @@ class Dict(MutableMapping):
     def __init__(self, root, router):
         self.root = root
         self.router = router
+        assert self.root and os.path.isdir(self.root)
 
     def __contains__(self, key):
         return self.router.route(key) and \
