@@ -101,3 +101,17 @@ class FfsTest(TestCase):
         lst1['lulz'] = lst1['lol']
         assert 'cat' in lst1['lulz']
         assert lst1['lulz']['cat'] == "hello"
+
+    def test_intTypeConv(self):
+        lst1 = Dict(self.root, Router(lulz=int))
+        assert 'lulz' not in lst1
+        lst1['lulz'] = 42
+        assert lst1['lulz'] == 42
+        assert isinstance(lst1['lulz'], int)
+        lst1['lulz'] += 1
+        assert lst1['lulz'] == 43
+        assert isinstance(lst1['lulz'], int)
+
+        lst2 = Dict(self.root, Router(lulz=str))
+        assert lst2['lulz'] == "43"
+        assert isinstance(lst2['lulz'], basestring)

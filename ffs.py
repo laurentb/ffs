@@ -44,8 +44,13 @@ class Dict(MutableMapping):
         else:
             with open(self._get_path(key), 'rb') as f:
                 data = f.read()
+            # it's already the class
+            if isinstance(data, cls):
+                return data
+            # lots of classes seem to have this method
             if hasattr(cls, 'fromstring'):
                 return cls.fromstring(data)
+            # works for int, for instance
             return cls(data)
 
     def _get_cls(self, key):
@@ -81,10 +86,15 @@ class Dict(MutableMapping):
         else:
             if not isinstance(value, cls):
                 raise ValueError("%s is not a %s." % (repr(value), cls.__name__))
+            # lots of classes have this method. usually does not lose information
             if hasattr(cls, 'tostring'):
                 data = value.tostring()
+            # no need for conversion
             elif isinstance(value, basestring):
                 data = value
+            # whitelist of classes with a __str__ that do not lose information
+            elif isinstance(value, (int, long)):
+                data = str(value)
             else:
                 raise ValueError("Unable to convert %s to a string." % repr(value))
             with open(self._get_path(key), 'wb') as f:
