@@ -115,3 +115,34 @@ class FfsTest(TestCase):
         lst2 = Dict(self.root, Router(lulz=str))
         assert lst2['lulz'] == "43"
         assert isinstance(lst2['lulz'], basestring)
+
+    def test_customTypeConv(self):
+        class Rot13(object):
+            """
+            Protect your data from hackers reading your memory!
+            """
+            def __init__(self, encstring):
+                self.encstring = encstring
+
+            def __str__(self):
+                return 'ENCRYPTED!'
+
+            def tostring(self):
+                return self.encstring.encode('rot13')
+
+            @classmethod
+            def fromstring(cls, string):
+                return cls(string.decode('rot13'))
+
+        rot13 = Rot13('yby')
+        assert rot13.tostring() == 'lol'
+        assert Rot13.fromstring('lol').tostring() == 'lol'
+
+        lst1 = Dict(self.root, Router(lulz=Rot13))
+        lst1['lulz'] = Rot13('yby')
+        assert lst1['lulz'].tostring() == 'lol'
+        assert isinstance(lst1['lulz'], Rot13)
+
+        lst2 = Dict(self.root, Router(lulz=str))
+        assert lst2['lulz'] == "lol"
+        assert isinstance(lst2['lulz'], basestring)
