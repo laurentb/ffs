@@ -18,20 +18,20 @@ class FfsTest(TestCase):
 
     def test_simpleAccess1(self):
         rtr = Router(lol=Router(hop=str))
-        lst1 = Dict(self.root, rtr)
-        assert 'hop' not in lst1
-        assert 'lol' in lst1
-        lst2 = lst1['lol']
-        assert 'hop' not in lst2
+        dct1 = Dict(self.root, rtr)
+        assert 'hop' not in dct1
+        assert 'lol' in dct1
+        dct2 = dct1['lol']
+        assert 'hop' not in dct2
 
     def test_simpleAccess2(self):
         rtr = Router(lol=Router(cat=str))
-        lst1 = Dict(self.root, rtr)
-        assert 'cat' not in lst1
-        assert 'lol' in lst1
-        lst2 = lst1['lol']
-        assert 'cat' in lst2
-        assert "hello" == lst2['cat']
+        dct1 = Dict(self.root, rtr)
+        assert 'cat' not in dct1
+        assert 'lol' in dct1
+        dct2 = dct1['lol']
+        assert 'cat' in dct2
+        assert "hello" == dct2['cat']
 
     def test_globAccess1(self):
         with open(os.path.join(self.root, 'lol', 'caaaaat'), 'w') as f:
@@ -40,81 +40,81 @@ class FfsTest(TestCase):
             f.write("hello3")
 
         rtr = Router(lol=Router({'c*t': str}))
-        lst1 = Dict(self.root, rtr)
-        assert 'cat' not in lst1
-        assert 'lol' in lst1
-        lst2 = lst1['lol']
-        assert 'cat' in lst2
-        assert 'caaaaat' in lst2
-        assert 'cot' not in lst2
-        assert 'longcat' not in lst2
-        assert "hello" == lst2['cat']
-        assert "hello2" == lst2['caaaaat']
-        self.assertRaises(KeyError, lst2.__getitem__, 'cot')
-        self.assertRaises(RouterError, lst2.__getitem__, 'longcat')
+        dct1 = Dict(self.root, rtr)
+        assert 'cat' not in dct1
+        assert 'lol' in dct1
+        dct2 = dct1['lol']
+        assert 'cat' in dct2
+        assert 'caaaaat' in dct2
+        assert 'cot' not in dct2
+        assert 'longcat' not in dct2
+        assert "hello" == dct2['cat']
+        assert "hello2" == dct2['caaaaat']
+        self.assertRaises(KeyError, dct2.__getitem__, 'cot')
+        self.assertRaises(RouterError, dct2.__getitem__, 'longcat')
 
     def test_finalValueDelete(self):
         rtr = Router(lol=Router(cat=str))
-        lst1 = Dict(self.root, rtr)
-        lst2 = lst1['lol']
-        assert 'cat' in lst2
-        del lst2['cat']
-        assert 'cat' not in lst2
+        dct1 = Dict(self.root, rtr)
+        dct2 = dct1['lol']
+        assert 'cat' in dct2
+        del dct2['cat']
+        assert 'cat' not in dct2
 
     def test_finalValueSet(self):
         rtr = Router(lol=Router(cat=str, cot=str))
-        lst1 = Dict(self.root, rtr)
-        lst2 = lst1['lol']
-        assert 'cot' not in lst2
-        lst2['cot'] = "hello2"
-        assert 'cot' in lst2
-        assert lst2['cot'] == "hello2"
+        dct1 = Dict(self.root, rtr)
+        dct2 = dct1['lol']
+        assert 'cot' not in dct2
+        dct2['cot'] = "hello2"
+        assert 'cot' in dct2
+        assert dct2['cot'] == "hello2"
 
     def test_listDelete(self):
         rtr = Router(lol=Router(cat=str, cot=str))
-        lst1 = Dict(self.root, rtr)
-        assert 'lol' in lst1
-        del lst1['lol']
-        assert 'lol' not in lst1
+        dct1 = Dict(self.root, rtr)
+        assert 'lol' in dct1
+        del dct1['lol']
+        assert 'lol' not in dct1
 
     def test_listSet(self):
         rtr = Router(lulz=Router(cat=str))
-        lst1 = Dict(self.root, rtr)
-        assert 'lulz' not in lst1
-        lst1['lulz'] = {}
-        assert len(lst1['lulz']) == 0
-        assert isinstance(lst1['lulz'], Dict)
-        lst1['lulz'] = {'cat': "hello"}
-        assert len(lst1['lulz']) == 1
-        assert isinstance(lst1['lulz'], Dict)
+        dct1 = Dict(self.root, rtr)
+        assert 'lulz' not in dct1
+        dct1['lulz'] = {}
+        assert len(dct1['lulz']) == 0
+        assert isinstance(dct1['lulz'], Dict)
+        dct1['lulz'] = {'cat': "hello"}
+        assert len(dct1['lulz']) == 1
+        assert isinstance(dct1['lulz'], Dict)
 
-        lst1n = Dict(self.root, rtr)
-        assert lst1n['lulz']['cat'] == "hello"
+        dct1n = Dict(self.root, rtr)
+        assert dct1n['lulz']['cat'] == "hello"
 
-        lst1n['lulz'] = {}
-        assert 'cat' not in lst1['lulz']
-        assert 'cat' not in lst1n['lulz']
+        dct1n['lulz'] = {}
+        assert 'cat' not in dct1['lulz']
+        assert 'cat' not in dct1n['lulz']
 
     def test_copyTrees(self):
         rtr = Router(lol=Router(cat=str), lulz=Router(cat=str))
-        lst1 = Dict(self.root, rtr)
-        lst1['lulz'] = lst1['lol']
-        assert 'cat' in lst1['lulz']
-        assert lst1['lulz']['cat'] == "hello"
+        dct1 = Dict(self.root, rtr)
+        dct1['lulz'] = dct1['lol']
+        assert 'cat' in dct1['lulz']
+        assert dct1['lulz']['cat'] == "hello"
 
     def test_intTypeConv(self):
-        lst1 = Dict(self.root, Router(lulz=int))
-        assert 'lulz' not in lst1
-        lst1['lulz'] = 42
-        assert lst1['lulz'] == 42
-        assert isinstance(lst1['lulz'], int)
-        lst1['lulz'] += 1
-        assert lst1['lulz'] == 43
-        assert isinstance(lst1['lulz'], int)
+        dct1 = Dict(self.root, Router(lulz=int))
+        assert 'lulz' not in dct1
+        dct1['lulz'] = 42
+        assert dct1['lulz'] == 42
+        assert isinstance(dct1['lulz'], int)
+        dct1['lulz'] += 1
+        assert dct1['lulz'] == 43
+        assert isinstance(dct1['lulz'], int)
 
-        lst2 = Dict(self.root, Router(lulz=str))
-        assert lst2['lulz'] == "43"
-        assert isinstance(lst2['lulz'], basestring)
+        dct2 = Dict(self.root, Router(lulz=str))
+        assert dct2['lulz'] == "43"
+        assert isinstance(dct2['lulz'], basestring)
 
     def test_customTypeConv(self):
         class Rot13(object):
@@ -138,22 +138,22 @@ class FfsTest(TestCase):
         assert rot13.tostring() == 'lol'
         assert Rot13.fromstring('lol').tostring() == 'lol'
 
-        lst1 = Dict(self.root, Router(lulz=Rot13))
-        lst1['lulz'] = Rot13('yby')
-        assert lst1['lulz'].tostring() == 'lol'
-        assert isinstance(lst1['lulz'], Rot13)
+        dct1 = Dict(self.root, Router(lulz=Rot13))
+        dct1['lulz'] = Rot13('yby')
+        assert dct1['lulz'].tostring() == 'lol'
+        assert isinstance(dct1['lulz'], Rot13)
 
-        lst2 = Dict(self.root, Router(lulz=str))
-        assert lst2['lulz'] == "lol"
-        assert isinstance(lst2['lulz'], basestring)
+        dct2 = Dict(self.root, Router(lulz=str))
+        assert dct2['lulz'] == "lol"
+        assert isinstance(dct2['lulz'], basestring)
 
     def test_DictList(self):
         rtr = Router(looool=[str])
-        lst1 = Dict(self.root, rtr)
-        self.assertRaises(KeyError, lst1.__getitem__, 'looool')
+        dct1 = Dict(self.root, rtr)
+        self.assertRaises(KeyError, dct1.__getitem__, 'looool')
         os.mkdir(os.path.join(self.root, 'looool'))
-        assert isinstance(lst1['looool'], DictList)
-        dl1 = lst1['looool']
+        assert isinstance(dct1['looool'], DictList)
+        dl1 = dct1['looool']
         # validate index types (mimics list)
         self.assertRaises(TypeError, dl1.__getitem__, 'lulz')
         # no elements, can't do anything (mimics list)
@@ -169,7 +169,7 @@ class FfsTest(TestCase):
         dl1[0] = 'c'
         assert dl1[0] == 'c'
         # check it's the same with a new DictList instance
-        dl2 = lst1['looool']
+        dl2 = dct1['looool']
         assert dl1 is not dl2
         assert dl2[0] == 'c'
         # check order
@@ -219,13 +219,13 @@ class FfsTest(TestCase):
         assert dl1[-5] == dl1[0]
         self.assertRaises(IndexError, dl1.__getitem__, -6)
         # erase/copy whole list
-        del lst1['looool']
-        assert 'looool' not in lst1
-        lst1['looool'] = ['x', 'y']
-        assert len(lst1['looool']) == 2
+        del dct1['looool']
+        assert 'looool' not in dct1
+        dct1['looool'] = ['x', 'y']
+        assert len(dct1['looool']) == 2
         assert len(dl1) == 2
         assert dl1[0] == 'x'
         assert dl1[1] == 'y'
-        lst1['looool'] = []
-        assert 'looool' in lst1
+        dct1['looool'] = []
+        assert 'looool' in dct1
         assert len(dl1) == 0
