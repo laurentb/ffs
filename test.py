@@ -229,3 +229,38 @@ class FfsTest(TestCase):
         dct1['looool'] = []
         assert 'looool' in dct1
         assert len(dl1) == 0
+
+    def test_mutableSave(self):
+        class MutableObject(object):
+            def __init__(self, v):
+                self.v = v
+
+            def tostring(self):
+                return self.v
+
+            @classmethod
+            def fromstring(cls, v):
+                return cls(v)
+
+        assert MutableObject.fromstring("lol").tostring() == "lol"
+        m = MutableObject("loool")
+        assert m.v == "loool"
+
+        dct1 = Dict(self.root, Router(lulz=MutableObject))
+        dct1['lulz'] = m
+        assert dct1['lulz'].v == "loool"
+        assert dct1['lulz'] is not m
+
+        # change a value in the mutable object
+        m.v = "lulz"
+        # it's not changed in the list, even in the same Dict object,
+        # because we keep nothing in memory
+        assert dct1['lulz'].v != "lulz"
+        assert dct1['lulz'] is not m
+        # it should force a save on disk
+        dct1['lulz'] = m
+        assert dct1['lulz'].v == "lulz"
+        assert dct1['lulz'] is not m
+        dct2 = Dict(self.root, Router(lulz=MutableObject))
+        assert dct2['lulz'].v == "lulz"
+        assert dct1['lulz'] is not m
