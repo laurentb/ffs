@@ -1,4 +1,4 @@
-from collections import MutableMapping
+from collections import MutableMapping, MutableSequence
 import os
 from fnmatch import fnmatchcase
 import shutil
@@ -27,6 +27,55 @@ class Router(object):
                 return cls
 
 
+class DictList(MutableSequence):
+    def __init__(self, root, cls):
+        self.dct = Dict(root, Router({'*': cls}))
+
+    def __getitem__(self, index):
+        index = self._get_idx(index)
+        return self.dct[str(index)]
+
+    def __len__(self):
+        return len(self.dct)
+
+    def __setitem__(self, index, value):
+        index = self._get_idx(index, write=True)
+        self.dct[str(index)] = value
+
+    def __delitem__(self, index):
+        size = len(self)
+        index = self._get_idx(index, write=True)
+        for i in xrange(index, size - 1):
+            # TODO too slow, move files (with a special Dict method?) instead
+            # TODO not atomic / hard to recover
+            self.dct[str(i)] = self.dct[str(i + 1)]
+        del self.dct[str(size - 1)]
+
+    def insert(self, index, value):
+        size = len(self)
+        index = self._get_idx(index, write=True, insert=True)
+        for i in xrange(size, index, -1):
+            # TODO too slow, move files (with a special Dict method?) instead
+            # TODO not atomic / hard to recover
+            self.dct[str(i)] = self.dct[str(i - 1)]
+        self.dct[str(index)] = value
+
+    def _get_idx(self, index, write=False, insert=False):
+        if not isinstance(index, (int, long)):
+            raise TypeError('list indices must be integers, not str')
+        size = len(self)
+        if index < 0:
+            index = size + index
+        if insert:
+            if index > size:
+                index = size
+        elif index > (size - 1) or index < 0:
+            if write:
+                raise IndexError('list assignment index out of range')
+            raise IndexError('list index out of range')
+        return index
+
+
 class Dict(MutableMapping):
     def __init__(self, root, router):
         self.root = root
@@ -41,6 +90,8 @@ class Dict(MutableMapping):
         cls = self._get_cls(key)
         if isinstance(cls, Router):
             return Dict(self._get_path(key), cls)
+        elif isinstance(cls, list):
+            return DictList(self._get_path(key), cls[0])
         else:
             with open(self._get_path(key), 'rb') as f:
                 data = f.read()
@@ -69,7 +120,7 @@ class Dict(MutableMapping):
 
     def __delitem__(self, key):
         cls = self._get_cls(key)
-        if isinstance(cls, Router):
+        if isinstance(cls, Router) or isinstance(cls, list):
             shutil.rmtree(self._get_path(key))
         else:
             os.unlink(self._get_path(key))
@@ -83,9 +134,17 @@ class Dict(MutableMapping):
                 del self[key]
             os.mkdir(self._get_path(key))
             if len(value):
-                lst = self[key]
+                dct = self[key]
                 for k, v in value.iteritems():
-                    lst[k] = v
+                    dct[k] = v
+        elif isinstance(cls, list) and isinstance(value, (DictList, list)):
+            if key in self:
+                del self[key]
+            os.mkdir(self._get_path(key))
+            if len(value):
+                lst = self[key]
+                for v in value:
+                    lst.append(v)
         else:
             if not isinstance(value, cls):
                 raise ValueError("%s is not a %s." % (repr(value), cls.__name__))

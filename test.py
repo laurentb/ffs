@@ -1,4 +1,4 @@
-from ffs import Router, Dict, RouterError
+from ffs import Router, Dict, DictList, RouterError
 from tempfile import mkdtemp
 import os
 import shutil
@@ -146,3 +146,86 @@ class FfsTest(TestCase):
         lst2 = Dict(self.root, Router(lulz=str))
         assert lst2['lulz'] == "lol"
         assert isinstance(lst2['lulz'], basestring)
+
+    def test_DictList(self):
+        rtr = Router(looool=[str])
+        lst1 = Dict(self.root, rtr)
+        self.assertRaises(KeyError, lst1.__getitem__, 'looool')
+        os.mkdir(os.path.join(self.root, 'looool'))
+        assert isinstance(lst1['looool'], DictList)
+        dl1 = lst1['looool']
+        # validate index types (mimics list)
+        self.assertRaises(TypeError, dl1.__getitem__, 'lulz')
+        # no elements, can't do anything (mimics list)
+        self.assertRaises(IndexError, dl1.__getitem__, 0)
+        self.assertRaises(IndexError, dl1.__setitem__, 0, 'a')
+        self.assertRaises(IndexError, dl1.__delitem__, 0)
+        assert len(dl1) == 0
+        # add an element
+        dl1.append('b')
+        assert len(dl1) == 1
+        assert dl1[0] == 'b'
+        # alter the element
+        dl1[0] = 'c'
+        assert dl1[0] == 'c'
+        # check it's the same with a new DictList instance
+        dl2 = lst1['looool']
+        assert dl1 is not dl2
+        assert dl2[0] == 'c'
+        # check order
+        dl1.append('d')
+        dl1.append('e')
+        assert dl1[0] == 'c'
+        assert dl1[1] == 'd'
+        assert dl1[2] == 'e'
+        assert len(dl1) == 3
+        # deletion
+        del dl1[1]
+        assert dl1[0] == 'c'
+        assert dl1[1] == 'e'
+        assert len(dl1) == 2
+        self.assertRaises(IndexError, dl1.__delitem__, 2)
+        del dl1[1]
+        assert dl1[0] == 'c'
+        assert len(dl1) == 1
+        del dl1[0]
+        assert len(dl1) == 0
+        # insertion
+        dl1.insert(0, 'a')
+        dl1.insert(0, 'b')
+        dl1.insert(0, 'c')
+        assert dl1[0] == 'c'
+        assert dl1[1] == 'b'
+        assert dl1[2] == 'a'
+        assert len(dl1) == 3
+        del dl1[2]
+        dl1.insert(1, 'd')
+        assert dl1[0] == 'c'
+        assert dl1[1] == 'd'
+        assert dl1[2] == 'b'
+        assert len(dl1) == 3
+        dl1.insert(42, 'e')
+        assert dl1[3] == 'e'
+        assert len(dl1) == 4
+        dl1.insert(3, 'f')
+        assert dl1[3] == 'f'
+        assert dl1[4] == 'e'
+        assert len(dl1) == 5
+        # negative indexes
+        assert dl1[-1] == dl1[4]
+        assert dl1[-2] == dl1[3]
+        assert dl1[-3] == dl1[2]
+        assert dl1[-4] == dl1[1]
+        assert dl1[-5] == dl1[0]
+        self.assertRaises(IndexError, dl1.__getitem__, -6)
+        # erase/copy whole list
+        del lst1['looool']
+        assert 'looool' not in lst1
+        lst1['looool'] = ['x', 'y']
+        assert len(lst1['looool']) == 2
+        assert len(dl1) == 2
+        assert dl1[0] == 'x'
+        assert dl1[1] == 'y'
+        lst1['looool'] = []
+        assert 'looool' in lst1
+        assert len(dl1) == 0
