@@ -158,58 +158,58 @@ class FfsTest(TestCase):
         self.assertRaises(TypeError, dl1.__getitem__, 'lulz')
         # no elements, can't do anything (mimics list)
         self.assertRaises(IndexError, dl1.__getitem__, 0)
-        self.assertRaises(IndexError, dl1.__setitem__, 0, 'a')
+        self.assertRaises(IndexError, dl1.__setitem__, 0, "a")
         self.assertRaises(IndexError, dl1.__delitem__, 0)
         assert len(dl1) == 0
         # add an element
-        dl1.append('b')
+        dl1.append("b")
         assert len(dl1) == 1
-        assert dl1[0] == 'b'
+        assert dl1[0] == "b"
         # alter the element
-        dl1[0] = 'c'
-        assert dl1[0] == 'c'
+        dl1[0] = "c"
+        assert dl1[0] == "c"
         # check it's the same with a new DictList instance
         dl2 = dct1['looool']
         assert dl1 is not dl2
-        assert dl2[0] == 'c'
+        assert dl2[0] == "c"
         # check order
-        dl1.append('d')
-        dl1.append('e')
-        assert dl1[0] == 'c'
-        assert dl1[1] == 'd'
-        assert dl1[2] == 'e'
+        dl1.append("d")
+        dl1.append("e")
+        assert dl1[0] == "c"
+        assert dl1[1] == "d"
+        assert dl1[2] == "e"
         assert len(dl1) == 3
         # deletion
         del dl1[1]
-        assert dl1[0] == 'c'
-        assert dl1[1] == 'e'
+        assert dl1[0] == "c"
+        assert dl1[1] == "e"
         assert len(dl1) == 2
         self.assertRaises(IndexError, dl1.__delitem__, 2)
         del dl1[1]
-        assert dl1[0] == 'c'
+        assert dl1[0] == "c"
         assert len(dl1) == 1
         del dl1[0]
         assert len(dl1) == 0
         # insertion
-        dl1.insert(0, 'a')
-        dl1.insert(0, 'b')
-        dl1.insert(0, 'c')
-        assert dl1[0] == 'c'
-        assert dl1[1] == 'b'
-        assert dl1[2] == 'a'
+        dl1.insert(0, "a")
+        dl1.insert(0, "b")
+        dl1.insert(0, "c")
+        assert dl1[0] == "c"
+        assert dl1[1] == "b"
+        assert dl1[2] == "a"
         assert len(dl1) == 3
         del dl1[2]
-        dl1.insert(1, 'd')
-        assert dl1[0] == 'c'
-        assert dl1[1] == 'd'
-        assert dl1[2] == 'b'
+        dl1.insert(1, "d")
+        assert dl1[0] == "c"
+        assert dl1[1] == "d"
+        assert dl1[2] == "b"
         assert len(dl1) == 3
-        dl1.insert(42, 'e')
-        assert dl1[3] == 'e'
+        dl1.insert(42, "e")
+        assert dl1[3] == "e"
         assert len(dl1) == 4
-        dl1.insert(3, 'f')
-        assert dl1[3] == 'f'
-        assert dl1[4] == 'e'
+        dl1.insert(3, "f")
+        assert dl1[3] == "f"
+        assert dl1[4] == "e"
         assert len(dl1) == 5
         # negative indexes
         assert dl1[-1] == dl1[4]
@@ -221,11 +221,11 @@ class FfsTest(TestCase):
         # erase/copy whole list
         del dct1['looool']
         assert 'looool' not in dct1
-        dct1['looool'] = ['x', 'y']
+        dct1['looool'] = ["x", "y"]
         assert len(dct1['looool']) == 2
         assert len(dl1) == 2
-        assert dl1[0] == 'x'
-        assert dl1[1] == 'y'
+        assert dl1[0] == "x"
+        assert dl1[1] == "y"
         dct1['looool'] = []
         assert 'looool' in dct1
         assert len(dl1) == 0
