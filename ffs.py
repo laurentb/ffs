@@ -74,6 +74,16 @@ class DictList(MutableSequence):
             raise IndexError('list index out of range')
         return index
 
+    def _is_healthy(self):
+        keys = self.dct.keys()
+        # We don't have to check the len(keys) == len(self), as it is
+        # how len(self) is found. What we check is that all the keys are
+        # part of the list.
+        for i in xrange(0, len(self)):
+            if str(i) not in keys:
+                return False
+        return True
+
 
 class Dict(MutableMapping):
     def __init__(self, root, router):

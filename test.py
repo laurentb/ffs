@@ -151,7 +151,7 @@ class FfsTest(TestCase):
         rtr = Router(looool=[str])
         dct1 = Dict(self.root, rtr)
         self.assertRaises(KeyError, dct1.__getitem__, 'looool')
-        os.mkdir(os.path.join(self.root, 'looool'))
+        dct1['looool'] = []
         assert isinstance(dct1['looool'], DictList)
         dl1 = dct1['looool']
         # validate index types (mimics list)
@@ -161,13 +161,16 @@ class FfsTest(TestCase):
         self.assertRaises(IndexError, dl1.__setitem__, 0, "a")
         self.assertRaises(IndexError, dl1.__delitem__, 0)
         assert len(dl1) == 0
+        assert dl1._is_healthy()
         # add an element
         dl1.append("b")
         assert len(dl1) == 1
         assert dl1[0] == "b"
+        assert dl1._is_healthy()
         # alter the element
         dl1[0] = "c"
         assert dl1[0] == "c"
+        assert dl1._is_healthy()
         # check it's the same with a new DictList instance
         dl2 = dct1['looool']
         assert dl1 is not dl2
@@ -179,6 +182,7 @@ class FfsTest(TestCase):
         assert dl1[1] == "d"
         assert dl1[2] == "e"
         assert len(dl1) == 3
+        assert dl1._is_healthy()
         # deletion
         del dl1[1]
         assert dl1[0] == "c"
@@ -198,19 +202,23 @@ class FfsTest(TestCase):
         assert dl1[1] == "b"
         assert dl1[2] == "a"
         assert len(dl1) == 3
+        assert dl1._is_healthy()
         del dl1[2]
         dl1.insert(1, "d")
         assert dl1[0] == "c"
         assert dl1[1] == "d"
         assert dl1[2] == "b"
         assert len(dl1) == 3
+        assert dl1._is_healthy()
         dl1.insert(42, "e")
         assert dl1[3] == "e"
         assert len(dl1) == 4
+        assert dl1._is_healthy()
         dl1.insert(3, "f")
         assert dl1[3] == "f"
         assert dl1[4] == "e"
         assert len(dl1) == 5
+        assert dl1._is_healthy()
         # negative indexes
         assert dl1[-1] == dl1[4]
         assert dl1[-2] == dl1[3]
@@ -222,13 +230,21 @@ class FfsTest(TestCase):
         del dct1['looool']
         assert 'looool' not in dct1
         dct1['looool'] = ["x", "y"]
+        assert dl1._is_healthy()
         assert len(dct1['looool']) == 2
         assert len(dl1) == 2
         assert dl1[0] == "x"
         assert dl1[1] == "y"
+        assert dl1._is_healthy()
         dct1['looool'] = []
         assert 'looool' in dct1
         assert len(dl1) == 0
+        assert dl1._is_healthy()
+
+    def test_brokenList(self):
+        rtr = Router(lol=[str])
+        dct1 = Dict(self.root, rtr)
+        assert not dct1['lol']._is_healthy()
 
     def test_mutableSave(self):
         class MutableObject(object):
