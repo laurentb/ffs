@@ -46,18 +46,17 @@ class DictList(MutableSequence):
         size = len(self)
         index = self._get_idx(index, write=True)
         for i in xrange(index, size - 1):
-            # TODO too slow, move files (with a special Dict method?) instead
             # TODO not atomic / hard to recover
-            self.dct[str(i)] = self.dct[str(i + 1)]
-        del self.dct[str(size - 1)]
+            self.dct._move(str(i + 1), str(i))
+        if index == size - 1:
+            del self.dct[str(size - 1)]
 
     def insert(self, index, value):
         size = len(self)
         index = self._get_idx(index, write=True, insert=True)
         for i in xrange(size, index, -1):
-            # TODO too slow, move files (with a special Dict method?) instead
             # TODO not atomic / hard to recover
-            self.dct[str(i)] = self.dct[str(i - 1)]
+            self.dct._move(str(i - 1), str(i))
         self.dct[str(index)] = value
 
     def _get_idx(self, index, write=False, insert=False):
@@ -147,7 +146,8 @@ class Dict(MutableMapping):
                     lst.append(v)
         else:
             if not isinstance(value, cls):
-                raise ValueError("%s is not a %s." % (repr(value), cls.__name__))
+                raise ValueError("%s is not a %s." \
+                            % (repr(value), cls.__name__))
             data = self._encode(value, cls)
             with open(self._get_path(key), 'wb') as f:
                 f.write(data)
@@ -172,3 +172,14 @@ class Dict(MutableMapping):
 
     def __len__(self):
         return len(self.keys())
+
+    def _move(self, oldkey, newkey):
+        """
+        Rename an existing key to another. It can erase existing values!
+        """
+        oldcls = self._get_cls(oldkey)
+        newcls = self.router.route(newkey)
+        if oldcls is not newcls:
+            raise RouterError('Incompatible types between %s and %s keys.' \
+                                                        % (newkey, oldkey))
+        os.rename(self._get_path(oldkey), self._get_path(newkey))
